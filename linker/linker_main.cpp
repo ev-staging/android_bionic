@@ -337,22 +337,24 @@ static ElfW(Addr) __linker_init_post_relocation(KernelArgumentBlock& args) {
 
   si->dynamic = nullptr;
 
-  ElfW(Ehdr)* elf_hdr = reinterpret_cast<ElfW(Ehdr)*>(si->base);
+  if (get_application_target_sdk_version() >= __ANDROID_API_M__) {
+    ElfW(Ehdr)* elf_hdr = reinterpret_cast<ElfW(Ehdr)*>(si->base);
 
-  // We haven't supported non-PIE since Lollipop for security reasons.
-  if (elf_hdr->e_type != ET_DYN) {
-    // We don't use async_safe_fatal here because we don't want a tombstone:
-    // even after several years we still find ourselves on app compatibility
-    // investigations because some app's trying to launch an executable that
-    // hasn't worked in at least three years, and we've "helpfully" dropped a
-    // tombstone for them. The tombstone never provided any detail relevant to
-    // fixing the problem anyway, and the utility of drawing extra attention
-    // to the problem is non-existent at this late date.
-    async_safe_format_fd(STDERR_FILENO,
-                         "\"%s\": error: Android 5.0 and later only support "
-                         "position-independent executables (-fPIE).\n",
-                         g_argv[0]);
-    exit(EXIT_FAILURE);
+    // We haven't supported non-PIE since Lollipop for security reasons.
+    if (elf_hdr->e_type != ET_DYN) {
+      // We don't use async_safe_fatal here because we don't want a tombstone:
+      // even after several years we still find ourselves on app compatibility
+      // investigations because some app's trying to launch an executable that
+      // hasn't worked in at least three years, and we've "helpfully" dropped a
+      // tombstone for them. The tombstone never provided any detail relevant to
+      // fixing the problem anyway, and the utility of drawing extra attention
+      // to the problem is non-existent at this late date.
+      async_safe_format_fd(STDERR_FILENO,
+                           "\"%s\": error: Android 5.0 and later only support "
+                           "position-independent executables (-fPIE).\n",
+                           g_argv[0]);
+      exit(EXIT_FAILURE);
+    }
   }
 
   // Use LD_LIBRARY_PATH and LD_PRELOAD (but only if we aren't setuid/setgid).
