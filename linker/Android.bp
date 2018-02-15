@@ -176,6 +176,9 @@ cc_binary {
             needs_prelink_support: {
                 cppflags: ["-DENABLE_PRELINK_SUPPORT"],
             },
+            target_shim_libs: {
+                cppflags: ["-DLD_SHIM_LIBS=\"%s\""],
+            },
         }
     },
 
